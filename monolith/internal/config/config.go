@@ -1,0 +1,41 @@
+package config
+
+import (
+	"fmt"
+	"log"
+	"os"
+
+	"github.com/joho/godotenv"
+)
+
+type Config struct {
+	DBDSN string
+}
+
+func LoadConfig() *Config {
+	// Загружаем .env, если есть
+	if err := godotenv.Load(); err != nil {
+		log.Println("Warning: .env file not found, using environment variables")
+	}
+
+	// По умолчанию отключаем SSL (для локальной разработки)
+	sslmode := os.Getenv("DB_SSLMODE")
+	if sslmode == "" {
+		sslmode = "disable"
+	}
+
+	// Формируем DSN для PostgreSQL
+	dsn := fmt.Sprintf(
+		"postgres://%s:%s@%s:%s/%s?sslmode=%s",
+		os.Getenv("DB_USER"),
+		os.Getenv("DB_PASSWORD"),
+		os.Getenv("DB_HOST"),
+		os.Getenv("DB_PORT"),
+		os.Getenv("DB_NAME"),
+		sslmode,
+	)
+
+	return &Config{
+		DBDSN: dsn,
+	}
+}
