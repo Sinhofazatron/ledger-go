@@ -1,9 +1,9 @@
 package main
 
 import (
-	"log"
 	"perfect_api/internal/config"
 	"perfect_api/internal/database"
+	"perfect_api/internal/logger"
 
 	userHandler "perfect_api/internal/user/handler"
 	userRepository "perfect_api/internal/user/repository"
@@ -13,7 +13,9 @@ import (
 )
 
 func main() {
-	log.Println("Starting Monolith Wallet Application...")
+	// initialize the log
+	logger.InitLogger()
+	logger.Log.Info("Starting Monolith Wallet Application...")
 
 	// 1. load configuration
 	cfg := config.LoadConfig()
@@ -21,7 +23,7 @@ func main() {
 	// 2. connect to database with retry
 	db, err := database.ConnectWithRetry(cfg.DBDSN)
 	if err != nil {
-		log.Fatalf("Critical Error: Could not connect to database after retries: %v", err)
+		logger.Log.Error("Critical Error: Could not connect to database after retries", "error", err)
 	}
 	defer db.Close()
 
@@ -39,8 +41,8 @@ func main() {
 	r.PUT("/api/v1/users/:id", uHandler.UpdateProfile)
 
 	// start server
-	log.Println("Server running on port 8080....")
+	logger.Log.Info("Server running on port 8080....")
 	if err := r.Run(":8080"); err != nil {
-		log.Fatalf("Server failed to run: %v", err)
+		logger.Log.Error("Server failed to run", "error", err)
 	}
 }

@@ -2,8 +2,9 @@ package config
 
 import (
 	"fmt"
-	"log"
 	"os"
+
+	"perfect_api/internal/logger"
 
 	"github.com/joho/godotenv"
 )
@@ -15,7 +16,7 @@ type Config struct {
 func LoadConfig() *Config {
 	// Загружаем .env, если есть
 	if err := godotenv.Load(); err != nil {
-		log.Println("Warning: .env file not found, using environment variables")
+		logger.Log.Info("Warning: .env file not found, using environment variables")
 	}
 
 	// По умолчанию отключаем SSL (для локальной разработки)
