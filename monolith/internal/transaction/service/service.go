@@ -144,6 +144,5 @@ func (s *transactionService) Transfer(ctx context.Context, senderUserID string, 
 		return nil, customErr.ErrInternalServer
 	}
 
-	transaction.CreatedAt = senderWallet.UpdatedAt
 	return transaction, nil
 }

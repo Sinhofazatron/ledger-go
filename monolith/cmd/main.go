@@ -14,6 +14,12 @@ import (
 	walletRepository "perfect_api/internal/wallet/repository"
 	walletService "perfect_api/internal/wallet/service"
 
+	ledgerRepository "perfect_api/internal/ledger/repository"
+
+	txHandler "perfect_api/internal/transaction/handler"
+	txRepository "perfect_api/internal/transaction/repository"
+	txService "perfect_api/internal/transaction/service"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -35,13 +41,17 @@ func main() {
 	// 1. initiate layer
 	uRepo := userRepository.NewMySQLUserRepository(db)
 	wRepo := walletRepository.NewMySQLWalletRepository(db)
+	tRepo := txRepository.NewMySQLTransactionRepository(db)
+	lRepo := ledgerRepository.NewMysqlLedgerRepository(db)
 
 	// inject db to user service for transaction
 	uSvc := userService.NewUserService(db, uRepo, wRepo)
 	wSvc := walletService.NewWalletService(wRepo)
+	tSvc := txService.NewTransactionService(db, tRepo, uRepo, wRepo, lRepo)
 
 	uHandler := userHandler.NewUserHandler(uSvc)
 	wHandler := walletHandler.NewWalletHandler(wSvc)
+	tHandler := txHandler.NewTransactionHandler(tSvc)
 
 	// 2. setup gin router
 	r := gin.New()
@@ -65,6 +75,7 @@ func main() {
 		{
 			protected.GET("/users/me", uHandler.GetProfileMe)
 			protected.GET("/wallets/me", wHandler.GetMyWallet)
+			protected.POST("/transactions/transfer", tHandler.Transfer)
 		}
 	}
 
