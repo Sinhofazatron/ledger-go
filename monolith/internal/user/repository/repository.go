@@ -13,6 +13,7 @@ type UserRepository interface {
 	GetByID(ctx context.Context, id string) (*model.User, error)
 	GetByEmail(ctx context.Context, email string) (*model.User, error)
 	Update(ctx context.Context, u *model.User) error
+	CreateTx(ctx context.Context, tx *sql.Tx, u *model.User) error
 }
 
 type mysqlUserRepository struct {
@@ -66,5 +67,11 @@ func (r *mysqlUserRepository) Update(ctx context.Context, u *model.User) error {
 
 	// TODO: Не обновляется updated_at
 	_, err := r.db.ExecContext(ctx, query, u.FullName, u.ID)
+	return err
+}
+
+func (r *mysqlUserRepository) CreateTx(ctx context.Context, tx *sql.Tx, u *model.User) error {
+	query := `INSERT INTO users (id, full_name, email, password_hash) VALUES ($1, $2, $3, $4)`
+	_, err := tx.ExecContext(ctx, query, u.ID, u.FullName, u.Email, u.PasswordHash)
 	return err
 }
