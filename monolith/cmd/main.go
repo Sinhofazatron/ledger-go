@@ -75,6 +75,7 @@ func main() {
 		{
 			protected.GET("/users/me", uHandler.GetProfileMe)
 			protected.DELETE("/users/me", uHandler.DeleteAccount)
+			protected.POST("/users/avatar", uHandler.UploadAvatar)
 
 			protected.GET("/wallets/me", wHandler.GetMyWallet)
 			
