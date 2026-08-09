@@ -1,6 +1,8 @@
 package main
 
 import (
+	_ "perfect_api/docs"
+
 	"perfect_api/internal/config"
 	"perfect_api/internal/database"
 	"perfect_api/internal/logger"
@@ -21,8 +23,20 @@ import (
 	txService "perfect_api/internal/transaction/service"
 
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
+// @title			GoWallet Monolith API
+// @version			1.0
+// @description		API Documentation for GoWallet
+// @termOfService	http://swagger.io/terms/
+
+// @contact.name	API Support
+// @contact.email	bashocode@gmail.com
+
+// @host			localhost:8080
+// @basepath		/api/v1
 func main() {
 	// initialize the log
 	logger.InitLogger()
@@ -58,6 +72,9 @@ func main() {
 	r.Use(gin.Recovery())
 	// Register global error handling middleware
 	r.Use(middleware.ErrorHandler())
+
+	// register the swagger api
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// Route grouping
 	v1 := r.Group("/api/v1")
