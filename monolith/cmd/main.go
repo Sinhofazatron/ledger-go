@@ -37,6 +37,11 @@ import (
 
 // @host			localhost:8080
 // @basepath		/api/v1
+
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Type "Bearer <your_token>" to authenticate.
 func main() {
 	// initialize the log
 	logger.InitLogger()
@@ -95,7 +100,7 @@ func main() {
 			protected.POST("/users/avatar", uHandler.UploadAvatar)
 
 			protected.GET("/wallets/me", wHandler.GetMyWallet)
-			
+
 			protected.POST("/transactions/transfer", tHandler.Transfer)
 			protected.GET("/transactions/history", tHandler.GetHistory)
 		}
