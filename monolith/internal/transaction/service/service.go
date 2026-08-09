@@ -14,6 +14,7 @@ import (
 	walletRepo "perfect_api/internal/wallet/repository"
 
 	"github.com/google/uuid"
+	"github.com/redis/go-redis/v9"
 )
 
 type TransactionService interface {
@@ -23,6 +24,7 @@ type TransactionService interface {
 
 type transactionService struct {
 	db         *sql.DB
+	rdb        *redis.Client
 	txRepo     repository.TransactionRepository
 	userRepo   userRepo.UserRepository
 	walletRepo walletRepo.WalletRepository
@@ -31,6 +33,7 @@ type transactionService struct {
 
 func NewTransactionService(
 	db *sql.DB,
+	rdb *redis.Client,
 	txRepo repository.TransactionRepository,
 	uRepo userRepo.UserRepository,
 	wRepo walletRepo.WalletRepository,
@@ -38,6 +41,7 @@ func NewTransactionService(
 ) TransactionService {
 	return &transactionService{
 		db:         db,
+		rdb:        rdb,
 		txRepo:     txRepo,
 		userRepo:   uRepo,
 		walletRepo: wRepo,
@@ -144,6 +148,15 @@ func (s *transactionService) Transfer(ctx context.Context, senderUserID string, 
 	if err := tx.Commit(); err != nil {
 		return nil, customErr.ErrInternalServer
 	}
+
+	// invalidate cache
+	senderCacheKey := "wallet:user:" + senderUserID
+	receiverCacheKey := "wallet:user:" + receiverUser.ID
+
+	// delete the cache keys asynchronously (don't block HTTP response)
+	go func() {
+		s.rdb.Del(context.Background(), senderCacheKey, receiverCacheKey)
+	}()
 
 	return transaction, nil
 }

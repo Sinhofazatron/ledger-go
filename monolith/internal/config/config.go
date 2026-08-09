@@ -10,7 +10,8 @@ import (
 )
 
 type Config struct {
-	DBDSN string
+	DBDSN     string
+	RedisAddr string
 }
 
 func LoadConfig() *Config {
@@ -36,7 +37,10 @@ func LoadConfig() *Config {
 		sslmode,
 	)
 
+	redisAddr := os.Getenv("REDIS_HOST") + ":" + os.Getenv("REDIS_PORT")
+
 	return &Config{
-		DBDSN: dsn,
+		DBDSN:     dsn,
+		RedisAddr: redisAddr,
 	}
 }

@@ -23,7 +23,7 @@ func ConnectWithRetry(dsn string) (*sql.DB, error) {
 			// do ping for make sure connection is alive
 			err = db.Ping()
 			if err == nil {
-				logger.Log.Info("Successfully connected to database")
+				logger.Log.Info("Successfully connected to Postgres")
 
 				// setup connection pool properties
 				db.SetMaxOpenConns(25)

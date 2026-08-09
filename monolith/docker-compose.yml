@@ -14,5 +14,12 @@ services:
       - postgres_data:/var/lib/postgres
     restart: always
 
+  redis:
+    image: redis:7-alpine
+    container_name: perfect-api-redis
+    ports:
+      - "6379:6379"
+    restart: always
+
 volumes:
   postgres_data:
