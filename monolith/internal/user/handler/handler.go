@@ -101,6 +101,7 @@ func (h *UserHandler) GetProfileMe(c *gin.Context) {
 }
 
 func (h *UserHandler) UploadAvatar(c *gin.Context) {
+	// TODO: Проверка на удаленного пользователя. Сейчас удаленному пользователю можно присвоить аватар
 	userID, _ := c.Get("user_id")
 
 	// get the file from request multipart
