@@ -129,6 +129,10 @@ definitions:
         type: string
       is_verified:
         type: boolean
+      oauth_id:
+        type: string
+      oauth_provider:
+        type: string
       updated_at:
         type: string
     type: object
@@ -343,6 +347,61 @@ paths:
           schema:
             $ref: '#/definitions/errors.AppError'
       summary: Forgot Password
+      tags:
+      - Users
+  /users/google/callback:
+    get:
+      description: Handle callback from Google OAuth
+      parameters:
+      - description: OAuth code
+        in: query
+        name: code
+        required: true
+        type: string
+      - description: OAuth state
+        in: query
+        name: state
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Returns login response
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.AppError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.AppError'
+      summary: Google Callback
+      tags:
+      - Users
+  /users/google/login:
+    get:
+      description: Redirect to Google OAuth login page
+      produces:
+      - application/json
+      responses:
+        "302":
+          description: Redirect to Google OAuth page
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.AppError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.AppError'
+      summary: Google Login
       tags:
       - Users
   /users/login:
