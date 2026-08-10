@@ -2,6 +2,7 @@ package main
 
 import (
 	_ "perfect_api/docs"
+	"time"
 
 	"perfect_api/internal/config"
 	"perfect_api/internal/database"
@@ -71,7 +72,7 @@ func main() {
 	lRepo := ledgerRepository.NewMysqlLedgerRepository(db)
 
 	// inject db to user service for transaction
-	uSvc := userService.NewUserService(db, uRepo, wRepo)
+	uSvc := userService.NewUserService(db, rdb, uRepo, wRepo)
 	wSvc := walletService.NewWalletService(wRepo, rdb)
 	tSvc := txService.NewTransactionService(db, rdb, tRepo, uRepo, wRepo, lRepo)
 
@@ -85,6 +86,9 @@ func main() {
 	// Register global error handling middleware
 	r.Use(middleware.ErrorHandler())
 
+	// apply global rate limiter max 60 request per minutes per ip
+	r.Use(middleware.RateLimiter(rdb, 60, time.Minute))
+
 	// register the swagger api
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
@@ -97,13 +101,14 @@ func main() {
 
 		// Protected routes (requires valid JWT token)
 		protected := v1.Group("")
-		protected.Use(middleware.AuthMiddleware())
+		protected.Use(middleware.AuthMiddleware(rdb))
 		{
 			protected.GET("/users/me", uHandler.GetProfileMe)
 			protected.POST("/users/avatar", uHandler.UploadAvatar)
 			protected.PUT("/users/:id", uHandler.UpdateProfile)
 			protected.GET("/users/:id", uHandler.GetProfile)
 			protected.DELETE("/users/me", uHandler.DeleteAccount)
+			protected.POST("/users/logout", uHandler.Logout)
 
 			protected.GET("/wallets/me", wHandler.GetMyWallet)
 

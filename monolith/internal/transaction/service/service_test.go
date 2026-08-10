@@ -32,6 +32,7 @@ func TestTransfer_Success(t *testing.T) {
 	mockWalletRepo := new(walletRepo.MockWalletRepository)
 	mockLedgerRepo := new(ledgerRepo.MockLedgerRepository)
 	rdb, mockRedis := redismock.NewClientMock()
+	defer rdb.Close()
 
 	svc := NewTransactionService(db, rdb, mockTxRepo, mockUserRepo, mockWalletRepo, mockLedgerRepo)
 
@@ -103,6 +104,7 @@ func TestTransfer_IdempotencyCached(t *testing.T) {
 	mockWalletRepo := new(walletRepo.MockWalletRepository)
 	mockLedgerRepo := new(ledgerRepo.MockLedgerRepository)
 	rdb, _ := redismock.NewClientMock()
+	defer rdb.Close()
 
 	svc := NewTransactionService(db, rdb, mockTxRepo, mockUserRepo, mockWalletRepo, mockLedgerRepo)
 
@@ -133,6 +135,7 @@ func TestTransfer_ReceiverNotFound(t *testing.T) {
 	mockWalletRepo := new(walletRepo.MockWalletRepository)
 	mockLedgerRepo := new(ledgerRepo.MockLedgerRepository)
 	rdb, _ := redismock.NewClientMock()
+	defer rdb.Close()
 
 	svc := NewTransactionService(db, rdb, mockTxRepo, mockUserRepo, mockWalletRepo, mockLedgerRepo)
 
@@ -161,6 +164,7 @@ func TestTransfer_SelfTransferNotAllowed(t *testing.T) {
 	mockWalletRepo := new(walletRepo.MockWalletRepository)
 	mockLedgerRepo := new(ledgerRepo.MockLedgerRepository)
 	rdb, _ := redismock.NewClientMock()
+	defer rdb.Close()
 
 	svc := NewTransactionService(db, rdb, mockTxRepo, mockUserRepo, mockWalletRepo, mockLedgerRepo)
 
@@ -198,6 +202,7 @@ func TestTransfer_InsufficientBalance(t *testing.T) {
 	mockWalletRepo := new(walletRepo.MockWalletRepository)
 	mockLedgerRepo := new(ledgerRepo.MockLedgerRepository)
 	rdb, _ := redismock.NewClientMock()
+	defer rdb.Close()
 
 	svc := NewTransactionService(db, rdb, mockTxRepo, mockUserRepo, mockWalletRepo, mockLedgerRepo)
 
@@ -234,6 +239,7 @@ func TestGetHistory_Success(t *testing.T) {
 	mockWalletRepo := new(walletRepo.MockWalletRepository)
 	mockLedgerRepo := new(ledgerRepo.MockLedgerRepository)
 	rdb, _ := redismock.NewClientMock()
+	defer rdb.Close()
 
 	svc := NewTransactionService(nil, rdb, mockTxRepo, mockUserRepo, mockWalletRepo, mockLedgerRepo)
 
@@ -263,6 +269,7 @@ func TestGetHistory_WalletNotFound(t *testing.T) {
 	mockWalletRepo := new(walletRepo.MockWalletRepository)
 	mockLedgerRepo := new(ledgerRepo.MockLedgerRepository)
 	rdb, _ := redismock.NewClientMock()
+	defer rdb.Close()
 
 	svc := NewTransactionService(nil, rdb, mockTxRepo, mockUserRepo, mockWalletRepo, mockLedgerRepo)
 
