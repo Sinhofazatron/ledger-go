@@ -1,13 +1,19 @@
 package main
 
 import (
+	"context"
+	"net/http"
+	"os"
+	"os/signal"
 	_ "perfect_api/docs"
+	"syscall"
 	"time"
 
 	"perfect_api/internal/config"
 	"perfect_api/internal/database"
 	"perfect_api/internal/logger"
 	"perfect_api/internal/middleware"
+	"perfect_api/internal/scheduler"
 
 	userHandler "perfect_api/internal/user/handler"
 	userRepository "perfect_api/internal/user/repository"
@@ -80,6 +86,9 @@ func main() {
 	wHandler := walletHandler.NewWalletHandler(wSvc)
 	tHandler := txHandler.NewTransactionHandler(tSvc)
 
+	cronSched := scheduler.NewScheduler(db, wRepo, lRepo)
+	cronSched.Start()
+
 	// 2. setup gin router
 	r := gin.New()
 	r.Use(gin.Recovery())
@@ -117,9 +126,38 @@ func main() {
 		}
 	}
 
+	srv := &http.Server{
+		Addr:    ":8080",
+		Handler: r,
+	}
+
+	// run server in separate goroutine
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			logger.Log.Error("Server failed to run", "error", err)
+		}
+	}()
+
 	// start server
 	logger.Log.Info("Server running on port 8080....")
-	if err := r.Run(":8080"); err != nil {
-		logger.Log.Error("Server failed to run", "error", err)
+
+	// graceful shutdown - wait for signal from os
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+
+	logger.Log.Info("Server shutting down gracefully...")
+
+	// give 10 seconds to complet in-flight requests
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := srv.Shutdown(ctx); err != nil {
+		logger.Log.Error("Server forced to shutdown", "error", err)
 	}
+
+	// stop scheduler after http server shutdown
+	cronSched.Stop()
+
+	logger.Log.Info("Server exited gracefully")
 }
