@@ -1,0 +1,43 @@
+package email
+
+import (
+	"context"
+	"fmt"
+	"net/smtp"
+
+	"perfect_api/internal/logger"
+)
+
+type EmailSender interface {
+	SendEmail(ctx context.Context, to string, subject string, body string) error
+}
+
+type smtpEmailSender struct {
+	host string
+	port string
+	from string
+}
+
+func NewSMTPEmailSender(host string, port string, from string) EmailSender {
+	return &smtpEmailSender{
+		host: host,
+		port: port,
+		from: from,
+	}
+}
+
+func (s *smtpEmailSender) SendEmail(ctx context.Context, to string, subject string, body string) error {
+	// msg := []byte(fmt.Sprintf("To: %s\r\nSubject: %s\r\n\r\n%s\r\n", to, subject, body))
+	msg := fmt.Appendf(nil, "To: %s\r\nSubject: %s\r\n\r\n%s\r\n", to, subject, body)
+
+	// for local testing with mailhog, we send without auth
+	addr := s.host + ":" + s.port
+	err := smtp.SendMail(addr, nil, s.from, []string{to}, msg)
+	if err != nil {
+		logger.Log.Error("Failed to send email via SMTP", "to", to, "error", err)
+		return err
+	}
+
+	logger.Log.Info("Email sent successfully", "to", to)
+	return nil
+}

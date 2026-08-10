@@ -34,6 +34,7 @@ func ConnectWithRetry(dsn string) (*sql.DB, error) {
 			}
 		}
 
+		// TODO: os.exit(1)
 		logger.Log.Info("Database connection failed, retrying", "error", err, "backoff", backoff)
 		time.Sleep(backoff)
 

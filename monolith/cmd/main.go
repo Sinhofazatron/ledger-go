@@ -11,6 +11,7 @@ import (
 
 	"perfect_api/internal/config"
 	"perfect_api/internal/database"
+	"perfect_api/internal/email"
 	"perfect_api/internal/logger"
 	"perfect_api/internal/middleware"
 	"perfect_api/internal/scheduler"
@@ -24,6 +25,8 @@ import (
 	walletService "perfect_api/internal/wallet/service"
 
 	ledgerRepository "perfect_api/internal/ledger/repository"
+
+	otpRepository "perfect_api/internal/otp/repository"
 
 	txHandler "perfect_api/internal/transaction/handler"
 	txRepository "perfect_api/internal/transaction/repository"
@@ -71,6 +74,10 @@ func main() {
 	}
 	defer rdb.Close()
 
+	// initiate email sender & otp repository
+	emailSender := email.NewSMTPEmailSender(cfg.SMTPHost, cfg.SMTPPort, cfg.SMTPFrom)
+	otpRepo := otpRepository.NewMySQLOTPRRepository(db)
+
 	// 1. initiate layer
 	uRepo := userRepository.NewMySQLUserRepository(db)
 	wRepo := walletRepository.NewMySQLWalletRepository(db)
@@ -78,7 +85,7 @@ func main() {
 	lRepo := ledgerRepository.NewMysqlLedgerRepository(db)
 
 	// inject db to user service for transaction
-	uSvc := userService.NewUserService(db, rdb, uRepo, wRepo)
+	uSvc := userService.NewUserService(db, rdb, uRepo, wRepo, otpRepo, emailSender)
 	wSvc := walletService.NewWalletService(wRepo, rdb)
 	tSvc := txService.NewTransactionService(db, rdb, tRepo, uRepo, wRepo, lRepo)
 
@@ -118,6 +125,7 @@ func main() {
 			protected.GET("/users/:id", uHandler.GetProfile)
 			protected.DELETE("/users/me", uHandler.DeleteAccount)
 			protected.POST("/users/logout", uHandler.Logout)
+			protected.POST("/users/verify-email", uHandler.VerifyEmail)
 
 			protected.GET("/wallets/me", wHandler.GetMyWallet)
 
