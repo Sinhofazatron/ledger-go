@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	customError "perfect_api/internal/errors"
+	customErr "perfect_api/internal/errors"
 	"perfect_api/internal/logger"
 	"perfect_api/internal/wallet/model"
 	"perfect_api/internal/wallet/repository"
@@ -73,7 +73,7 @@ func (s *walletService) GetWalletByUserID(ctx context.Context, userID string) (*
 
 	wallet, err := s.repo.GetByUserID(ctx, userID)
 	if err != nil {
-		return nil, customError.NewAppError(http.StatusNotFound, "WALLET_NOT_FOUND", "wallet not found")
+		return nil, customErr.NewAppError(http.StatusNotFound, "WALLET_NOT_FOUND", "wallet not found")
 	}
 
 	// save to redis for 5 minutes TTL

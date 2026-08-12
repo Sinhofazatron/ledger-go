@@ -3,7 +3,7 @@ package middleware
 import (
 	"net/http"
 
-	customError "perfect_api/internal/errors"
+	customErr "perfect_api/internal/errors"
 	"perfect_api/internal/logger"
 
 	"github.com/gin-gonic/gin"
@@ -19,7 +19,7 @@ func ErrorHandler() gin.HandlerFunc {
 			err := c.Errors.Last().Err
 
 			// check if the error is one of our custom AppError
-			if appErr, ok := err.(*customError.AppError); ok {
+			if appErr, ok := err.(*customErr.AppError); ok {
 				logger.Warn(c.Request.Context(), "Client error occured",
 					"code", appErr.Code,
 					"message", appErr.Message,
@@ -36,7 +36,7 @@ func ErrorHandler() gin.HandlerFunc {
 			logger.Error(c.Request.Context(), "Unhandled error occured", "error", err.Error())
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"success": false,
-				"error":   customError.ErrInternalServer,
+				"error":   customErr.ErrInternalServer,
 			})
 		}
 	}
