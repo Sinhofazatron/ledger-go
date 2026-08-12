@@ -1,6 +1,19 @@
+# File environment
 .env
+.env.*
+
+# Build artifacts Go
+*.exe
+*.test
+*.out
+
+# IDE
+.idea/
+.vscode/
 help.txt
 
-out
-docs
+# OS
+.DS_Store
+
+# Upload directory
 uploads
