@@ -441,7 +441,11 @@ func (h *UserHandler) VerifyPasswordReset(c *gin.Context) {
 // @Failure 500 {object} errors.AppError
 // @Router /users/google/login [get]
 func (h *UserHandler) GoogleLogin(c *gin.Context) {
-	loginURL := h.svc.GetGoogleLoginURL()
+	loginURL, err := h.svc.GetGoogleLoginURL(c.Request.Context())
+	if err != nil {
+		c.Error(err)
+		return
+	}
 	c.Redirect(http.StatusTemporaryRedirect, loginURL)
 }
 
@@ -456,6 +460,7 @@ func (h *UserHandler) GoogleLogin(c *gin.Context) {
 // @Failure 400 {object} errors.AppError
 // @Failure 500 {object} errors.AppError
 // @Router /users/google/callback [get]
+// @Security BearerAuth
 func (h *UserHandler) GoogleCallback(c *gin.Context) {
 	code := c.Query("code")
 	state := c.Query("state")
@@ -470,7 +475,7 @@ func (h *UserHandler) GoogleCallback(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.svc.HandleGoogleCallback(c.Request.Context(), code)
+	resp, err := h.svc.HandleGoogleCallback(c.Request.Context(), code, state)
 	if err != nil {
 		c.Error(err)
 		return
