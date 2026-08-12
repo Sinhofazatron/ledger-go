@@ -43,13 +43,13 @@ func (r *mysqlRefreshTokenRepository) GetByToken(ctx context.Context, token stri
 }
 
 func (r *mysqlRefreshTokenRepository) Revoke(ctx context.Context, token string) error {
-	query := `UPDATE refresh_tokens SET revoked = 1 WHERE token = $1`
+	query := `UPDATE refresh_tokens SET revoked = true WHERE token = $1`
 	_, err := r.db.ExecContext(ctx, query, token)
 	return err
 }
 
 func (r *mysqlRefreshTokenRepository) RevokeAllByUserID(ctx context.Context, userID string) error {
-	query := `UPDATE refresh_tokens SET revoked = 1 WHERE user_id = $1`
+	query := `UPDATE refresh_tokens SET revoked = true WHERE user_id = $1`
 	_, err := r.db.ExecContext(ctx, query, userID)
 	return err
 }

@@ -540,8 +540,9 @@ func TestLogout_Success(t *testing.T) {
 	ctx := context.TODO()
 	userID := "user-123"
 	email := "test@example.com"
+	role := "user"
 
-	token, err := auth.GenerateToken(userID, email, 15*time.Minute)
+	token, err := auth.GenerateToken(userID, email, role, 15*time.Minute)
 	assert.NoError(t, err)
 
 	blacklistKey := fmt.Sprintf("blacklist:%s", token)
@@ -599,8 +600,9 @@ func TestLogout_RedisError(t *testing.T) {
 	ctx := context.TODO()
 	userID := "user-123"
 	email := "test@example.com"
+	role := "user"
 
-	token, err := auth.GenerateToken(userID, email, 15*time.Minute)
+	token, err := auth.GenerateToken(userID, email, role, 15*time.Minute)
 	assert.NoError(t, err)
 
 	blacklistKey := fmt.Sprintf("blacklist:%s", token)

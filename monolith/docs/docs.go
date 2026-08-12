@@ -477,6 +477,56 @@ const docTemplate = `{
                 }
             }
         },
+        "/users/refresh-token": {
+            "post": {
+                "description": "Refresh token",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Refresh Token",
+                "parameters": [
+                    {
+                        "description": "refresh token",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.RefreshTokenRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Returns success and message",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/errors.AppError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/errors.AppError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errors.AppError"
+                        }
+                    }
+                }
+            }
+        },
         "/users/register": {
             "post": {
                 "description": "Create new User with default wallet",
@@ -887,6 +937,17 @@ const docTemplate = `{
                 }
             }
         },
+        "model.RefreshTokenRequest": {
+            "type": "object",
+            "required": [
+                "refresh_token"
+            ],
+            "properties": {
+                "refresh_token": {
+                    "type": "string"
+                }
+            }
+        },
         "model.TransferRequest": {
             "type": "object",
             "required": [
@@ -952,6 +1013,10 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "oauth_provider": {
+                    "type": "string"
+                },
+                "role": {
+                    "description": "user, admin",
                     "type": "string"
                 },
                 "updated_at": {

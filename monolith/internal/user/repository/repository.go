@@ -38,10 +38,10 @@ func (r *mysqlUserRepository) Create(ctx context.Context, u *model.User) error {
 }
 
 func (r *mysqlUserRepository) GetByID(ctx context.Context, id string) (*model.User, error) {
-	query := `SELECT id, full_name, email, password_hash, oauth_provider, oauth_id, avatar_url, is_verified, created_at, updated_at, deleted_at FROM users WHERE id = $1 AND deleted_at IS NULL`
+	query := `SELECT id, full_name, email, role, password_hash, oauth_provider, oauth_id, avatar_url, is_verified, created_at, updated_at, deleted_at FROM users WHERE id = $1 AND deleted_at IS NULL`
 	u := &model.User{}
 
-	err := r.db.QueryRowContext(ctx, query, id).Scan(&u.ID, &u.FullName, &u.Email, &u.PasswordHash, &u.OAuthProvider, &u.OAuthID, &u.AvatarURL, &u.IsVerified, &u.CreatedAt, &u.UpdatedAt, &u.DeletedAt)
+	err := r.db.QueryRowContext(ctx, query, id).Scan(&u.ID, &u.FullName, &u.Email, &u.Role, &u.PasswordHash, &u.OAuthProvider, &u.OAuthID, &u.AvatarURL, &u.IsVerified, &u.CreatedAt, &u.UpdatedAt, &u.DeletedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, errors.New("user not found")
@@ -54,10 +54,10 @@ func (r *mysqlUserRepository) GetByID(ctx context.Context, id string) (*model.Us
 }
 
 func (r *mysqlUserRepository) GetByEmail(ctx context.Context, email string) (*model.User, error) {
-	query := `SELECT id, full_name, email, password_hash, avatar_url, is_verified, created_at, updated_at, deleted_at FROM users WHERE email = $1 AND deleted_at IS NULL`
+	query := `SELECT id, full_name, email, role, password_hash, avatar_url, is_verified, created_at, updated_at, deleted_at FROM users WHERE email = $1 AND deleted_at IS NULL`
 	u := &model.User{}
 
-	err := r.db.QueryRowContext(ctx, query, email).Scan(&u.ID, &u.FullName, &u.Email, &u.PasswordHash, &u.AvatarURL, &u.IsVerified, &u.CreatedAt, &u.UpdatedAt, &u.DeletedAt)
+	err := r.db.QueryRowContext(ctx, query, email).Scan(&u.ID, &u.FullName, &u.Email, &u.Role, &u.PasswordHash, &u.AvatarURL, &u.IsVerified, &u.CreatedAt, &u.UpdatedAt, &u.DeletedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, errors.New("user not found")
@@ -70,10 +70,10 @@ func (r *mysqlUserRepository) GetByEmail(ctx context.Context, email string) (*mo
 }
 
 func (r *mysqlUserRepository) GetByEmailNoErrorNotFound(ctx context.Context, email string) (*model.User, error) {
-	query := `SELECT id, full_name, email, password_hash, avatar_url, is_verified, created_at, updated_at, deleted_at FROM users WHERE email = $1 AND deleted_at IS NULL`
+	query := `SELECT id, full_name, email, role, password_hash, avatar_url, is_verified, created_at, updated_at, deleted_at FROM users WHERE email = $1 AND deleted_at IS NULL`
 	u := &model.User{}
 
-	err := r.db.QueryRowContext(ctx, query, email).Scan(&u.ID, &u.FullName, &u.Email, &u.PasswordHash, &u.AvatarURL, &u.IsVerified, &u.CreatedAt, &u.UpdatedAt, &u.DeletedAt)
+	err := r.db.QueryRowContext(ctx, query, email).Scan(&u.ID, &u.FullName, &u.Email, &u.Role, &u.PasswordHash, &u.AvatarURL, &u.IsVerified, &u.CreatedAt, &u.UpdatedAt, &u.DeletedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
@@ -130,11 +130,11 @@ func (r *mysqlUserRepository) UpdatePassword(ctx context.Context, id string, pas
 }
 
 func (r *mysqlUserRepository) GetByOAuth(ctx context.Context, provider, oauthID string) (*model.User, error) {
-	query := `SELECT id, full_name, email, password_hash, oauth_provider, oauth_id, avatar_url, is_verified, created_at, updated_at, deleted_at FROM users WHERE oauth_provider = $1 AND oauth_id = $2 AND deleted_at IS NULL`
+	query := `SELECT id, full_name, email, role, password_hash, oauth_provider, oauth_id, avatar_url, is_verified, created_at, updated_at, deleted_at FROM users WHERE oauth_provider = $1 AND oauth_id = $2 AND deleted_at IS NULL`
 	u := &model.User{}
 
 	err := r.db.QueryRowContext(ctx, query, provider, oauthID).Scan(
-		&u.ID, &u.FullName, &u.Email, &u.PasswordHash, &u.OAuthProvider, &u.OAuthID, &u.AvatarURL, &u.IsVerified, &u.CreatedAt, &u.UpdatedAt, &u.DeletedAt,
+		&u.ID, &u.FullName, &u.Email, &u.Role, &u.PasswordHash, &u.OAuthProvider, &u.OAuthID, &u.AvatarURL, &u.IsVerified, &u.CreatedAt, &u.UpdatedAt, &u.DeletedAt,
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
