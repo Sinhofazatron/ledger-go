@@ -2,13 +2,29 @@ package handler
 
 import (
 	"net/http"
+	"reflect"
 
 	customErr "perfect_api/internal/errors"
 	"perfect_api/internal/transaction/model"
 	"perfect_api/internal/transaction/service"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
+	"github.com/go-playground/validator/v10"
+	"github.com/shopspring/decimal"
 )
+
+func init() {
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		v.RegisterCustomTypeFunc(func(field reflect.Value) interface{} {
+			if val, ok := field.Interface().(decimal.Decimal); ok {
+				d, _ := val.Float64()
+				return d
+			}
+			return nil
+		}, decimal.Decimal{})
+	}
+}
 
 type TransactionHandler struct {
 	svc service.TransactionService
