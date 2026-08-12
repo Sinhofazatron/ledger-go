@@ -28,6 +28,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
+	"github.com/shopspring/decimal"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -122,7 +123,7 @@ func (s *userService) Register(ctx context.Context, req model.CreateUserRequest)
 	wallet := &walletModel.Wallet{
 		ID:       uuid.New().String(),
 		UserID:   user.ID,
-		Balance:  0.0,
+		Balance:  decimal.Zero,
 		Currency: "IDR",
 		Status:   "active",
 	}
@@ -481,7 +482,7 @@ func (s *userService) HandleGoogleCallback(ctx context.Context, code string) (*m
 			wallet := &walletModel.Wallet{
 				ID:       uuid.New().String(),
 				UserID:   user.ID,
-				Balance:  0.0,
+				Balance:  decimal.Zero,
 				Currency: "IDR",
 				Status:   "active",
 				Version:  1,

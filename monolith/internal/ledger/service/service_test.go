@@ -10,6 +10,7 @@ import (
 	walletModel "perfect_api/internal/wallet/model"
 	walletRepo "perfect_api/internal/wallet/repository"
 
+	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -22,18 +23,18 @@ func TestReconcileWalletBalance_Consistent(t *testing.T) {
 	userID := "user-123"
 	wallet := &walletModel.Wallet{
 		ID:      "wallet-123",
-		Balance: 500.0,
+		Balance: decimal.NewFromFloat(500.0),
 	}
 
 	mockWalletRepo.On("GetByUserID", ctx, userID).Return(wallet, nil)
-	mockLedgerRepo.On("GetBalanceByWalletID", ctx, wallet.ID).Return(500.0, nil)
+	mockLedgerRepo.On("GetBalanceByWalletID", ctx, wallet.ID).Return(decimal.NewFromFloat(500.0), nil)
 
 	isConsistent, walletBalance, calculatedBalance, err := svc.ReconcileWalletBalance(ctx, userID)
 
 	assert.NoError(t, err)
 	assert.True(t, isConsistent)
-	assert.Equal(t, 500.0, walletBalance)
-	assert.Equal(t, 500.0, calculatedBalance)
+	assert.Equal(t, decimal.NewFromFloat(500.0), walletBalance)
+	assert.Equal(t, decimal.NewFromFloat(500.0), calculatedBalance)
 	mockWalletRepo.AssertExpectations(t)
 	mockLedgerRepo.AssertExpectations(t)
 }
@@ -47,18 +48,18 @@ func TestReconcileWalletBalance_Discrepancy(t *testing.T) {
 	userID := "user-123"
 	wallet := &walletModel.Wallet{
 		ID:      "wallet-123",
-		Balance: 500.0,
+		Balance: decimal.NewFromFloat(500.0),
 	}
 
 	mockWalletRepo.On("GetByUserID", ctx, userID).Return(wallet, nil)
-	mockLedgerRepo.On("GetBalanceByWalletID", ctx, wallet.ID).Return(450.0, nil)
+	mockLedgerRepo.On("GetBalanceByWalletID", ctx, wallet.ID).Return(decimal.NewFromFloat(450.0), nil)
 
 	isConsistent, walletBalance, calculatedBalance, err := svc.ReconcileWalletBalance(ctx, userID)
 
 	assert.NoError(t, err)
 	assert.False(t, isConsistent)
-	assert.Equal(t, 500.0, walletBalance)
-	assert.Equal(t, 450.0, calculatedBalance)
+	assert.Equal(t, decimal.NewFromFloat(500.0), walletBalance)
+	assert.Equal(t, decimal.NewFromFloat(450.0), calculatedBalance)
 }
 
 func TestReconcileWalletBalance_WalletError(t *testing.T) {
@@ -86,11 +87,11 @@ func TestReconcileWalletBalance_LedgerError(t *testing.T) {
 	userID := "user-123"
 	wallet := &walletModel.Wallet{
 		ID:      "wallet-123",
-		Balance: 500.0,
+		Balance: decimal.NewFromFloat(500.0),
 	}
 
 	mockWalletRepo.On("GetByUserID", ctx, userID).Return(wallet, nil)
-	mockLedgerRepo.On("GetBalanceByWalletID", ctx, wallet.ID).Return(0.0, errors.New("ledger error"))
+	mockLedgerRepo.On("GetBalanceByWalletID", ctx, wallet.ID).Return(decimal.Zero, errors.New("ledger error"))
 
 	isConsistent, _, _, err := svc.ReconcileWalletBalance(ctx, userID)
 
@@ -109,7 +110,7 @@ func TestGetMutationHistory_Success(t *testing.T) {
 		ID: "wallet-123",
 	}
 	expectedEntries := []model.LedgerEntry{
-		{ID: "entry-1", WalletID: "wallet-123", EntryType: "credit", Amount: 100},
+		{ID: "entry-1", WalletID: "wallet-123", EntryType: "credit", Amount: decimal.NewFromFloat(100)},
 	}
 
 	mockWalletRepo.On("GetByUserID", ctx, userID).Return(wallet, nil)
