@@ -7,6 +7,7 @@ import (
 	customErr "perfect_api/internal/errors"
 	"perfect_api/internal/transaction/model"
 	"perfect_api/internal/transaction/service"
+	"perfect_api/internal/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -17,7 +18,7 @@ import (
 func init() {
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		v.RegisterCustomTypeFunc(func(field reflect.Value) interface{} {
-			if val, ok := field.Interface().(decimal.Decimal); ok {
+			if val, ok := utils.SafeDecimal(field.Interface()); ok {
 				d, _ := val.Float64()
 				return d
 			}
@@ -55,13 +56,19 @@ func (h *TransactionHandler) Transfer(c *gin.Context) {
 		return
 	}
 
+	senderUserIDStr, ok := utils.SafeString(senderUserID)
+	if !ok {
+		c.Error(customErr.NewAppError(http.StatusUnauthorized, "UNAUTHORIZED", "Invalid user context"))
+		return
+	}
+
 	var req model.TransferRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.Error(customErr.NewAppError(http.StatusBadRequest, "BAD_REQUEST", err.Error()))
 		return
 	}
 
-	tx, err := h.svc.Transfer(c.Request.Context(), senderUserID.(string), req)
+	tx, err := h.svc.Transfer(c.Request.Context(), senderUserIDStr, req)
 	if err != nil {
 		c.Error(err)
 		return
@@ -97,13 +104,19 @@ func (h *TransactionHandler) GetHistory(c *gin.Context) {
 		return
 	}
 
+	userIDStr, ok := utils.SafeString(userID)
+	if !ok {
+		c.Error(customErr.NewAppError(http.StatusUnauthorized, "UNAUTHORIZED", "Invalid user context"))
+		return
+	}
+
 	var params model.PaginationParams
 	if err := c.ShouldBindQuery(&params); err != nil {
 		c.Error(customErr.NewAppError(http.StatusBadRequest, "INVALID_INPUT", err.Error()))
 		return
 	}
 
-	txs, meta, err := h.svc.GetHistory(c.Request.Context(), userID.(string), params)
+	txs, meta, err := h.svc.GetHistory(c.Request.Context(), userIDStr, params)
 	if err != nil {
 		c.Error(err)
 		return
@@ -135,13 +148,19 @@ func (h *TransactionHandler) TopUp(c *gin.Context) {
 		return
 	}
 
+	userIDStr, ok := utils.SafeString(userID)
+	if !ok {
+		c.Error(customErr.NewAppError(http.StatusUnauthorized, "UNAUTHORIZED", "Invalid user context"))
+		return
+	}
+
 	var req model.TopUpRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.Error(customErr.NewAppError(http.StatusBadRequest, "BAD_REQUEST", err.Error()))
 		return
 	}
 
-	tx, err := h.svc.TopUp(c.Request.Context(), userID.(string), req)
+	tx, err := h.svc.TopUp(c.Request.Context(), userIDStr, req)
 	if err != nil {
 		c.Error(err)
 		return

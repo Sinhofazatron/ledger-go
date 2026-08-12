@@ -8,6 +8,7 @@ import (
 	customErr "perfect_api/internal/errors"
 	"perfect_api/internal/user/model"
 	"perfect_api/internal/user/service"
+	"perfect_api/internal/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -140,9 +141,19 @@ func (h *UserHandler) Login(c *gin.Context) {
 // @Router		/users/me [get]
 // @Security	BearerAuth
 func (h *UserHandler) GetProfileMe(c *gin.Context) {
-	userID, _ := c.Get("user_id")
+	userID, exist := c.Get("user_id")
+	if !exist {
+		c.Error(customErr.NewAppError(http.StatusUnauthorized, "UNAUTHORIZED", "User context not found"))
+		return
+	}
 
-	user, err := h.svc.GetProfile(c.Request.Context(), userID.(string))
+	userIDStr, ok := utils.SafeString(userID)
+	if !ok {
+		c.Error(customErr.NewAppError(http.StatusUnauthorized, "UNAUTHORIZED", "Invalid user context"))
+		return
+	}
+
+	user, err := h.svc.GetProfile(c.Request.Context(), userIDStr)
 	if err != nil {
 		c.Error(err)
 		return
@@ -166,8 +177,18 @@ func (h *UserHandler) GetProfileMe(c *gin.Context) {
 // @Router		/users/avatar [post]
 // @Security	BearerAuth
 func (h *UserHandler) UploadAvatar(c *gin.Context) {
-	// TODO: Проверка на удаленного пользователя. Сейчас удаленному пользователю можно присвоить аватар
-	userID, _ := c.Get("user_id")
+	// TODO: Удаленному пользователю можно загрузить аватар
+	userID, exist := c.Get("user_id")
+	if !exist {
+		c.Error(customErr.NewAppError(http.StatusUnauthorized, "UNAUTHORIZED", "User context not found"))
+		return
+	}
+
+	userIDStr, ok := utils.SafeString(userID)
+	if !ok {
+		c.Error(customErr.NewAppError(http.StatusUnauthorized, "UNAUTHORIZED", "Invalid user context"))
+		return
+	}
 
 	// get the file from request multipart
 	file, err := c.FormFile("avatar")
@@ -194,7 +215,7 @@ func (h *UserHandler) UploadAvatar(c *gin.Context) {
 	_ = os.MkdirAll(uploadDir, os.ModePerm)
 
 	// rename file based on user id
-	filename := userID.(string) + ext
+	filename := userIDStr + ext
 	dst := filepath.Join(uploadDir, filename)
 
 	// save the file
@@ -205,7 +226,7 @@ func (h *UserHandler) UploadAvatar(c *gin.Context) {
 
 	// update user's avatar
 	avatarURL := "/uploads/" + filename
-	if err := h.svc.UpdateAvatar(c.Request.Context(), userID.(string), avatarURL); err != nil {
+	if err := h.svc.UpdateAvatar(c.Request.Context(), userIDStr, avatarURL); err != nil {
 		c.Error(customErr.ErrInternalServer)
 		return
 	}
@@ -226,8 +247,19 @@ func (h *UserHandler) UploadAvatar(c *gin.Context) {
 // @Router		/users/me [delete]
 // @Security	BearerAuth
 func (h *UserHandler) DeleteAccount(c *gin.Context) {
-	id, _ := c.Get("user_id")
-	if err := h.svc.DeleteAccount(c.Request.Context(), id.(string)); err != nil {
+	id, exist := c.Get("user_id")
+	if !exist {
+		c.Error(customErr.NewAppError(http.StatusUnauthorized, "UNAUTHORIZED", "User context not found"))
+		return
+	}
+
+	idStr, ok := utils.SafeString(id)
+	if !ok {
+		c.Error(customErr.NewAppError(http.StatusUnauthorized, "UNAUTHORIZED", "Invalid user context"))
+		return
+	}
+
+	if err := h.svc.DeleteAccount(c.Request.Context(), idStr); err != nil {
 		c.Error(err)
 		return
 	}
@@ -250,9 +282,19 @@ func (h *UserHandler) DeleteAccount(c *gin.Context) {
 // @Router /users/logout [post]
 // @Security BearerAuth
 func (h *UserHandler) Logout(c *gin.Context) {
-	tokenString, _ := c.Get("token_string")
+	tokenString, exist := c.Get("token_string")
+	if !exist {
+		c.Error(customErr.NewAppError(http.StatusUnauthorized, "UNAUTHORIZED", "Token context not found"))
+		return
+	}
 
-	err := h.svc.Logout(c.Request.Context(), tokenString.(string))
+	tokenStringStr, ok := utils.SafeString(tokenString)
+	if !ok {
+		c.Error(customErr.NewAppError(http.StatusUnauthorized, "UNAUTHORIZED", "Invalid token context"))
+		return
+	}
+
+	err := h.svc.Logout(c.Request.Context(), tokenStringStr)
 	if err != nil {
 		c.Error(err)
 		return
@@ -281,7 +323,17 @@ type VerifyOTPRequest struct {
 // @Router /users/verify-email [post]
 // @Security BearerAuth
 func (h *UserHandler) VerifyEmail(c *gin.Context) {
-	userID, _ := c.Get("user_id")
+	userID, exist := c.Get("user_id")
+	if !exist {
+		c.Error(customErr.NewAppError(http.StatusUnauthorized, "UNAUTHORIZED", "User context not found"))
+		return
+	}
+
+	userIDStr, ok := utils.SafeString(userID)
+	if !ok {
+		c.Error(customErr.NewAppError(http.StatusUnauthorized, "UNAUTHORIZED", "Invalid user context"))
+		return
+	}
 
 	var req VerifyOTPRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -289,7 +341,7 @@ func (h *UserHandler) VerifyEmail(c *gin.Context) {
 		return
 	}
 
-	err := h.svc.VerifyEmail(c.Request.Context(), userID.(string), req.Code)
+	err := h.svc.VerifyEmail(c.Request.Context(), userIDStr, req.Code)
 	if err != nil {
 		c.Error(err)
 		return
