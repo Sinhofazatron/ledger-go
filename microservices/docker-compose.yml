@@ -1,0 +1,73 @@
+services:
+    # === Infrastructure ===
+    postgres:
+        image: postgres:18.1-bookworm
+        container_name: perfect-postgres
+        environment:
+            POSTGRES_USER: admin
+            POSTGRES_PASSWORD: admin
+            POSTGRES_DB: perfect-postgres
+        ports:
+            - "5432:5432"
+        volumes:
+            - postgres_data:/var/lib/postgres
+        networks:
+            - perfect-network
+        healthcheck:
+            test: ["CMD", "pg_isready", "-U", "admin", "-d", "perfect-postgres"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
+    redis:
+        image: redis:7-alpine
+        container_name: perfect-redis
+        ports:
+            - "6379:6379"
+        networks:
+            - perfect-network
+        healthcheck:
+            test: ["CMD", "redis-cli", "ping"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
+    mailhog:
+        image: mailhog/mailhog:latest
+        container_name: perfect-mailhog
+        ports:
+            - "1025:1025" # SMTP port
+            - "8025:8025" # Web UI dashboard port
+        networks:
+            - perfect-network
+        restart: always
+
+    # === Application Services ===
+    api-gateway:
+        build:
+            context: .
+            dockerfile: api-gateway/Dockerfile
+        container_name: perfect-api-gateway
+        ports:
+            - "8080:8080"
+        environment:
+            AUTH_SERVICE_URL: http://auth-service:8081
+            USER_SERVICE_URL: http://user-service:8084
+            WALLET_SERVICE_URL: http://wallet-service:8082
+            TRANSACTION_SERVICE_URL: http://transaction-service:8086
+            PAYMENT_SERVICE_URL: http://payment-service:8083
+        # depends_on:
+        #     auth-service:
+        #         condition: service_started
+        #     user-service:
+        #         condition: service_started
+        networks:
+            - perfect-network
+        restart: unless-stopped
+
+volumes:
+    postgres_data:
+
+networks:
+    perfect-network:
+        driver: bridge
