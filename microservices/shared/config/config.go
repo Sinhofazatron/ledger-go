@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 
 	"perfect-api/shared/logger"
@@ -30,11 +31,22 @@ func LoadConfig() *Config {
 		logger.Log.Info("Warning: .env file not found, using environment variables")
 	}
 
-	dsn := os.Getenv("DB_USER") + ":" +
-		os.Getenv("DB_PASSWORD") + "@tcp(" +
-		os.Getenv("DB_HOST") + ":" +
-		os.Getenv("DB_PORT") + ")/" +
-		os.Getenv("DB_NAME") + "?parseTime=true"
+	// По умолчанию отключаем SSL (для локальной разработки)
+	sslmode := os.Getenv("DB_SSLMODE")
+	if sslmode == "" {
+		sslmode = "disable"
+	}
+
+	// Формируем DSN для PostgreSQL
+	dsn := fmt.Sprintf(
+		"postgres://%s:%s@%s:%s/%s?sslmode=%s",
+		os.Getenv("DB_USER"),
+		os.Getenv("DB_PASSWORD"),
+		os.Getenv("DB_HOST"),
+		os.Getenv("DB_PORT"),
+		os.Getenv("DB_NAME"),
+		sslmode,
+	)
 
 	redisAddr := os.Getenv("REDIS_HOST") + ":" + os.Getenv("REDIS_PORT")
 

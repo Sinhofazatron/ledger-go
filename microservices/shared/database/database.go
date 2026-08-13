@@ -17,7 +17,7 @@ func ConnectWithRetry(dsn string) (*sql.DB, error) {
 	for i := 1; i <= maxRetries; i++ {
 		logger.Log.Info("Connecting to database", "attempt", i, "max_retries", maxRetries)
 
-		db, err = sql.Open("mysql", dsn)
+		db, err = sql.Open("pgx", dsn)
 		if err == nil {
 			// do ping for make sure connection is alive
 			err = db.Ping()
